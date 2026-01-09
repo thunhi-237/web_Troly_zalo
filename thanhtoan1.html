@@ -1,0 +1,1581 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thanh Toán - Anh Lập Trình</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css?v=20251223_140342" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="style.css?v=20251223_140342">
+    <style>
+        /* Header không sticky trong trang thanh toán */
+        header {
+            position: static !important;
+        }
+        
+        .payment-page {
+            min-height: 100vh;
+            background: #1b877b;
+            padding: 40px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .payment-page::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="2" fill="rgba(255,255,255,0.1)"/></svg>');
+            opacity: 0.3;
+            pointer-events: none;
+        }
+        
+        .payment-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 30px;
+            padding: 60px 50px;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.15), 0 10px 30px rgba(0, 120, 106, 0.1);
+            position: relative;
+            z-index: 1;
+            animation: slideUp 0.6s ease-out;
+            border: 1px solid rgba(0, 120, 106, 0.1);
+        }
+        
+        /* Typography improvements */
+        .payment-container p,
+        .payment-container span,
+        .payment-container div {
+            word-spacing: 0.05em;
+            letter-spacing: 0.01em;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .success-header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 35px;
+            border-bottom: 3px solid #f0f0f0;
+            position: relative;
+        }
+        
+        .success-header::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #00786a, transparent);
+        }
+        
+        .success-icon {
+            width: 90px;
+            height: 90px;
+            background: linear-gradient(135deg, #00786a 0%, #005a4f 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px;
+            animation: scaleIn 0.5s ease-out 0.3s both;
+            box-shadow: 0 15px 40px rgba(0, 120, 106, 0.4), 0 5px 15px rgba(0, 120, 106, 0.2);
+            position: relative;
+        }
+        
+        .success-icon::before {
+            content: '';
+            position: absolute;
+            inset: -5px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00786a, #005a4f);
+            opacity: 0.2;
+            z-index: -1;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.2; }
+            50% { transform: scale(1.1); opacity: 0.1; }
+        }
+        
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+            }
+            to {
+                transform: scale(1);
+            }
+        }
+        
+        .success-icon::after {
+            content: '✓';
+            color: white;
+            font-size: 50px;
+            font-weight: bold;
+        }
+        
+        .success-header h4 {
+            font-size: 36px;
+            color: #00786a;
+            margin-bottom: 15px;
+            font-weight: 700;
+            line-height: 1.3;
+            text-align: center;
+            letter-spacing: -0.5px;
+        }
+        
+        .success-header p {
+            text-align: center;
+            line-height: 1.7;
+            font-size: 18px;
+            color: #555;
+            margin-bottom: 0;
+            font-weight: 500;
+        }
+        
+        .payment-info {
+            background: linear-gradient(135deg, #f0f9f8 0%, #ffffff 100%);
+            padding: 35px;
+            border-radius: 20px;
+            margin: 35px 0;
+            box-shadow: 0 8px 25px rgba(0, 120, 106, 0.1), 0 3px 10px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e0f2f0;
+        }
+        
+        .payment-info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0;
+            font-size: 19px;
+            padding: 22px 25px;
+            background: white;
+            border-radius: 14px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            line-height: 1.6;
+            gap: 20px;
+            border: 1px solid #f0f0f0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+        
+        .payment-info-item strong {
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        
+        .payment-info-item span:last-child {
+            font-weight: 700;
+            color: #e74c3c;
+            text-align: right;
+        }
+        
+        .payment-info-item:hover {
+            transform: translateX(8px);
+            box-shadow: 0 4px 12px rgba(0, 120, 106, 0.15);
+            border-color: #00786a;
+        }
+        
+        .payment-info-item strong {
+            color: #00786a;
+            font-size: 18px;
+        }
+        
+        .payment-info-item span:last-child {
+            color: #e74c3c;
+            font-weight: bold;
+            font-size: 24px;
+        }
+        
+        .payment-code {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border: 3px solid #ffc107;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            font-size: 32px;
+            font-weight: bold;
+            color: #856404;
+            margin: 25px 0;
+            letter-spacing: 5px;
+            box-shadow: 0 5px 20px rgba(255, 193, 7, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .payment-code::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shine 3s infinite;
+        }
+        
+        @keyframes shine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+        
+        .promo-note {
+            background: linear-gradient(135deg, #ffebee 0%, #fce4ec 100%);
+            border-left: 4px solid #e74c3c;
+            padding: 22px;
+            border-radius: 16px;
+            margin: 30px 0;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(231, 76, 60, 0.15);
+            border: 1px solid #ffcdd2;
+        }
+        
+        .promo-note p {
+            color: #c0392b;
+            font-weight: bold;
+            font-size: 18px;
+            margin: 0;
+            text-align: center;
+            line-height: 1.6;
+        }
+        
+        .note-box {
+            background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
+            border-left: 4px solid #28a745;
+            padding: 28px;
+            border-radius: 18px;
+            margin: 35px 0;
+            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.15), 0 3px 10px rgba(40, 167, 69, 0.1);
+            border: 1px solid #c8e6c9;
+        }
+        
+        .note-box p {
+            font-size: 17px;
+            line-height: 1.8;
+            color: #155724;
+            margin-bottom: 12px;
+            text-align: justify;
+            text-justify: inter-word;
+        }
+        
+        .note-box p:last-child {
+            margin-bottom: 0;
+        }
+        
+        .bank-info {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fffe 100%);
+            border: 2px solid #e0f2f0;
+            padding: 40px;
+            border-radius: 24px;
+            margin: 40px 0;
+            box-shadow: 0 15px 40px rgba(0, 120, 106, 0.12), 0 5px 15px rgba(0, 120, 106, 0.08);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .bank-info::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #00786a, #00a693, #00786a);
+            background-size: 200% 100%;
+            animation: shimmer 3s linear infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        .bank-info h4 {
+            color: #00786a;
+            font-size: 28px;
+            margin-bottom: 30px;
+            text-align: center;
+            font-weight: 700;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e0f2f0;
+            line-height: 1.4;
+            letter-spacing: -0.3px;
+        }
+        
+        .qr-code-container {
+            background: linear-gradient(135deg, #ffffff 0%, #f0f9f8 100%);
+            border-radius: 24px;
+            padding: 35px;
+            margin: 30px 0;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.08), 0 5px 15px rgba(0, 120, 106, 0.1);
+            border: 1px solid #e0f2f0;
+            position: relative;
+        }
+        
+        .qr-code-container::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(135deg, #00786a, #00a693, #00786a);
+            border-radius: 24px;
+            z-index: -1;
+            opacity: 0.1;
+        }
+        
+        .qr-header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 25px;
+            border-bottom: 2px solid #e0f2f0;
+            gap: 20px;
+        }
+        
+        .qr-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .bidv-logo {
+            color: #00A651;
+            font-weight: bold;
+            font-size: 28px;
+            letter-spacing: 1px;
+        }
+        
+        .bidv-icon {
+            width: 35px;
+            height: 35px;
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            box-shadow: 0 3px 10px rgba(255, 215, 0, 0.4);
+        }
+        
+        .vietqr-logo {
+            color: #E31837;
+            font-weight: bold;
+            font-size: 24px;
+            letter-spacing: 1px;
+        }
+        
+        .qr-code-wrapper {
+            text-align: center;
+            padding: 25px;
+            background: white;
+            border-radius: 20px;
+            margin: 30px auto;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            max-width: 400px;
+            position: relative;
+        }
+        
+        .qr-code-wrapper::after {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #00786a, #00a693);
+            opacity: 0.1;
+            z-index: -1;
+        }
+        
+        #qrcode {
+            max-width: 100%;
+            width: 100%;
+            height: auto;
+            border-radius: 16px;
+            display: block;
+            margin: 0 auto;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15), 0 3px 10px rgba(0, 120, 106, 0.1);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: white;
+            padding: 8px;
+        }
+        
+        #qrcode:hover {
+            transform: scale(1.03) translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2), 0 5px 15px rgba(0, 120, 106, 0.15);
+        }
+        
+        .qr-info {
+            margin-top: 25px;
+            text-align: center;
+            padding: 20px;
+            background: rgb(225, 247, 250);
+            border-radius: 12px;
+        }
+        
+        .qr-info p {
+            font-size: 17px;
+            margin: 10px 0;
+            color: #333;
+            line-height: 1.7;
+            text-align: center;
+        }
+        
+        .qr-info .account-name {
+            font-weight: bold;
+            font-size: 20px;
+            color: #000;
+            letter-spacing: 1px;
+        }
+        
+        .qr-info .account-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #e74c3c;
+            letter-spacing: 2px;
+        }
+        
+        .qr-info .bank-name {
+            color: #666;
+            font-size: 15px;
+        }
+        
+        .bank-details {
+            background: linear-gradient(135deg, #f8fffe 0%, #ffffff 100%);
+            padding: 30px;
+            border-radius: 20px;
+            margin-top: 30px;
+            box-shadow: 0 5px 20px rgba(0, 120, 106, 0.08);
+            border: 1px solid #e0f2f0;
+        }
+        
+        .bank-details p {
+            font-size: 17px;
+            margin-bottom: 18px;
+            line-height: 1.8;
+            padding: 20px 22px;
+            background: white;
+            border-radius: 14px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: left;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            border: 1px solid #f0f0f0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+        
+        .bank-details p:last-child {
+            margin-bottom: 0;
+        }
+        
+        .bank-details p strong {
+            min-width: 200px;
+            flex-shrink: 0;
+            font-weight: 600;
+        }
+        
+        .bank-details p span {
+            flex: 1;
+            min-width: 150px;
+        }
+        
+        .bank-details p:hover {
+            background: linear-gradient(135deg, #f8fffe 0%, #ffffff 100%);
+            transform: translateX(8px);
+            border-color: #00786a;
+            box-shadow: 0 4px 12px rgba(0, 120, 106, 0.15);
+        }
+        
+        .bank-details strong {
+            color: #00786a;
+            display: inline-block;
+            min-width: 180px;
+            font-weight: 600;
+        }
+        
+        .copy-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: auto;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #00786a 0%, #005a4f 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            white-space: nowrap;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(0, 120, 106, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .copy-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .copy-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .copy-btn:hover {
+            background: linear-gradient(135deg, #005a4f 0%, #00786a 100%);
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 6px 20px rgba(0, 120, 106, 0.4);
+        }
+        
+        .copy-btn:active {
+            transform: translateY(0) scale(0.98);
+        }
+        
+        .copy-btn.copied {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
+        
+        .bank-details p {
+            position: relative;
+        }
+        
+        .info-box {
+            background: linear-gradient(135deg, #f0f9f8 0%, #ffffff 100%);
+            border-left: 4px solid #00786a;
+            padding: 28px;
+            border-radius: 18px;
+            margin: 35px 0;
+            box-shadow: 0 8px 25px rgba(0, 120, 106, 0.12), 0 3px 10px rgba(0, 120, 106, 0.08);
+            border: 1px solid #e0f2f0;
+        }
+        
+        .info-box p {
+            color: #00786a;
+            font-size: 17px;
+            line-height: 1.8;
+            margin-bottom: 12px;
+            text-align: justify;
+            text-justify: inter-word;
+        }
+        
+        .info-box p:last-child {
+            margin-bottom: 0;
+        }
+        
+        .waiting-payment {
+            text-align: center;
+            padding: 35px;
+            background: linear-gradient(135deg, #fff8e1 0%, #fffde7 100%);
+            border-radius: 18px;
+            margin: 40px 0;
+            box-shadow: 0 8px 25px rgba(255, 193, 7, 0.2), 0 3px 10px rgba(255, 193, 7, 0.1);
+            border: 1px solid #ffe082;
+        }
+        
+        .waiting-payment h5 {
+            font-size: 24px;
+            color: #856404;
+            font-weight: 600;
+            margin: 0;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .waiting-payment h5::after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+        
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+        
+        .payment-code-below-qr {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border: 3px solid #ffc107;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            font-size: 28px;
+            font-weight: bold;
+            color: #856404;
+            margin: 25px auto;
+            letter-spacing: 5px;
+            box-shadow: 0 5px 20px rgba(255, 193, 7, 0.3);
+            max-width: 400px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .payment-code-below-qr::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shine 3s infinite;
+        }
+        
+        .transfer-content-below-qr {
+            text-align: center;
+            margin: 15px 0 25px 0;
+            padding: 18px;
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border-radius: 12px;
+            font-size: 17px;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .transfer-content-below-qr p {
+            margin: 0;
+            color: #1976d2;
+            line-height: 1.7;
+            text-align: center;
+        }
+        
+        .transfer-content-below-qr strong {
+            color: #667eea;
+            font-size: 20px;
+            letter-spacing: 2px;
+            display: block;
+            margin-top: 8px;
+        }
+        
+        /* Account Info Card */
+        .account-info-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fffe 100%);
+            border-radius: 18px;
+            padding: 28px;
+            margin: 30px 0;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1), 0 3px 10px rgba(0, 120, 106, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            position: relative;
+            border: 1px solid #e0f2f0;
+            transition: all 0.3s ease;
+        }
+        
+        .account-info-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.12), 0 5px 15px rgba(0, 120, 106, 0.1);
+        }
+        
+        .account-info-card .vietqr-icon {
+            width: 50px;
+            height: 50px;
+            background: #E31837;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+        
+        .account-info-card .mbank-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex-shrink: 0;
+            font-weight: bold;
+            font-size: 24px;
+        }
+        
+        .account-info-card .mbank-icon .mb-text {
+            color: #0066CC;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        
+        .account-info-card .mbank-icon .star {
+            color: #E31837;
+            font-size: 20px;
+            line-height: 1;
+        }
+        
+        .account-info-content {
+            flex: 1;
+        }
+        
+        .account-info-content .account-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #00786a;
+            margin-bottom: 8px;
+        }
+        
+        .account-info-content .account-name {
+            font-size: 16px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .account-info-card .chevron-down {
+            color: #999;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        
+        .action-btn {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            padding: 15px 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 100px;
+            text-decoration: none;
+            color: #333;
+        }
+        
+        .action-btn:hover {
+            background: #f5f5f5;
+            border-color: #00786a;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 120, 106, 0.2);
+        }
+        
+        .action-btn .icon {
+            width: 40px;
+            height: 40px;
+            background: #f0f0f0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #00786a;
+        }
+        
+        .action-btn:hover .icon {
+            background: #00786a;
+            color: white;
+        }
+        
+        .action-btn .text {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .napas-logo {
+            color: #00786a;
+            font-weight: bold;
+            font-size: 24px;
+            letter-spacing: 1px;
+        }
+        
+        .napas-logo .number {
+            color: #27ae60;
+        }
+        
+        @media (max-width: 768px) {
+            .account-info-card {
+                padding: 20px;
+                margin: 20px 0;
+            }
+            
+            .account-info-card .vietqr-icon {
+                width: 45px;
+                height: 45px;
+                font-size: 20px;
+            }
+            
+            .account-info-card .mbank-icon {
+                font-size: 20px;
+            }
+            
+            .account-info-card .mbank-icon .mb-text {
+                font-size: 20px;
+            }
+            
+            .account-info-card .mbank-icon .star {
+                font-size: 16px;
+            }
+            
+            .account-info-content .account-number {
+                font-size: 20px;
+            }
+            
+            .account-info-content .account-name {
+                font-size: 14px;
+            }
+            
+            .action-buttons {
+                gap: 10px;
+                margin: 25px 0;
+            }
+            
+            .action-btn {
+                padding: 12px 20px;
+                min-width: 90px;
+            }
+            
+            .action-btn .icon {
+                width: 35px;
+                height: 35px;
+                font-size: 18px;
+            }
+            
+            .action-btn .text {
+                font-size: 13px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            /* Cải thiện typography tổng thể cho mobile */
+            body {
+                font-size: 16px;
+                line-height: 1.7;
+            }
+            
+            /* Container responsive */
+            .container {
+                padding: 0 15px;
+            }
+            
+            /* Header Responsive */
+            header {
+                padding: 12px 0;
+            }
+            
+            header .container {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                gap: 10px;
+            }
+            
+            .logo {
+                font-size: 22px;
+            }
+            
+            .logo-img {
+                height: 40px;
+            }
+            
+            nav {
+                flex-wrap: nowrap;
+                gap: 10px;
+            }
+            
+            nav a {
+                font-size: 14px;
+                padding: 8px 12px;
+            }
+            
+            /* Payment Page */
+            .payment-page {
+                padding: 15px 0;
+            }
+            
+            .payment-container {
+                padding: 25px 18px;
+                margin: 10px;
+                border-radius: 18px;
+            }
+            
+            /* Success Header - Căn chỉnh đẹp hơn */
+            .success-header {
+                margin-bottom: 25px;
+                padding-bottom: 20px;
+            }
+            
+            .success-icon {
+                width: 65px;
+                height: 65px;
+                margin-bottom: 18px;
+            }
+            
+            .success-icon::after {
+                font-size: 40px;
+            }
+            
+            .success-header h4 {
+                font-size: 20px;
+                line-height: 1.35;
+                margin-bottom: 12px;
+                padding: 0 5px;
+            }
+            
+            .success-header p {
+                font-size: 15px;
+                line-height: 1.6;
+                padding: 0 5px;
+            }
+            
+            /* Note Box - Căn chỉnh đều */
+            .note-box {
+                padding: 18px 16px;
+                margin: 20px 0;
+                border-radius: 12px;
+            }
+            
+            .note-box p {
+                font-size: 15px;
+                line-height: 1.7;
+                margin-bottom: 10px;
+                text-align: justify;
+                text-justify: inter-word;
+            }
+            
+            .note-box p:last-child {
+                margin-bottom: 0;
+            }
+            
+            /* Bank Info - Tối ưu spacing */
+            .bank-info {
+                padding: 22px 18px;
+                margin: 20px 0;
+                border-radius: 18px;
+            }
+            
+            .bank-info h4 {
+                font-size: 20px;
+                margin-bottom: 18px;
+                line-height: 1.35;
+                padding-bottom: 12px;
+            }
+            
+            /* QR Code Section - Căn chỉnh hoàn hảo */
+            .qr-code-container {
+                padding: 20px 16px;
+                margin: 18px 0;
+                border-radius: 15px;
+            }
+            
+            .qr-header {
+                flex-direction: row;
+                justify-content: center;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 18px;
+                padding-bottom: 15px;
+            }
+            
+            .qr-header-divider {
+                display: none !important;
+            }
+            
+            .qr-logo {
+                gap: 8px;
+            }
+            
+            .bidv-logo {
+                font-size: 20px;
+            }
+            
+            .bidv-icon {
+                width: 30px;
+                height: 30px;
+                font-size: 16px;
+            }
+            
+            .vietqr-logo {
+                font-size: 18px;
+            }
+            
+            .qr-code-wrapper {
+                padding: 12px;
+                margin: 15px 0;
+                border-radius: 12px;
+            }
+            
+            #qrcode {
+                max-width: 100%;
+                width: 100%;
+                height: auto;
+                border-radius: 12px;
+            }
+            
+            /* Bank Details - Layout đẹp hơn */
+            .bank-details {
+                padding: 18px 15px;
+                margin-top: 18px;
+                border-radius: 12px;
+            }
+            
+            .bank-details p {
+                font-size: 15px;
+                line-height: 1.7;
+                margin-bottom: 12px;
+                padding: 14px 12px;
+                border-radius: 10px;
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .bank-details strong {
+                display: block;
+                margin-bottom: 4px;
+                font-size: 15px;
+                font-weight: 600;
+                color: #00786a;
+                width: 100%;
+                line-height: 1.5;
+            }
+            
+            .bank-details span {
+                display: inline-block;
+                font-size: 16px;
+                word-break: break-word;
+                margin-top: 4px;
+                line-height: 1.6;
+            }
+            
+            .bank-details .copy-btn {
+                align-self: flex-start;
+                margin-top: 4px;
+            }
+            
+            .bank-details #account-number {
+                font-size: 19px;
+                font-weight: bold;
+                color: #e74c3c;
+            }
+            
+            .bank-details #account-name {
+                font-size: 16px;
+                font-weight: 600;
+                color: #333;
+            }
+            
+            .bank-details #payment-content {
+                font-size: 17px;
+                font-weight: bold;
+                color: #e74c3c;
+            }
+            
+            /* Copy Button - Căn chỉnh đẹp */
+            .copy-btn {
+                margin-left: 0;
+                margin-top: 10px;
+                padding: 10px 18px;
+                font-size: 13px;
+                width: 100%;
+                max-width: 120px;
+                border-radius: 8px;
+            }
+            
+            /* Payment Info - Căn chỉnh */
+            .payment-info {
+                padding: 20px 18px;
+                margin: 20px 0;
+                border-radius: 15px;
+            }
+            
+            .payment-info-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+                padding: 16px;
+                font-size: 16px;
+                border-radius: 10px;
+            }
+            
+            .payment-info-item strong {
+                font-size: 15px;
+                display: block;
+                margin-bottom: 6px;
+            }
+            
+            .payment-info-item span:last-child {
+                font-size: 20px;
+                font-weight: bold;
+            }
+            
+            /* Promo Note */
+            .promo-note {
+                padding: 16px 14px;
+                margin: 18px 0;
+                border-radius: 12px;
+            }
+            
+            .promo-note p {
+                font-size: 15px;
+                line-height: 1.6;
+            }
+            
+            /* Info Box */
+            .info-box {
+                padding: 18px 16px;
+                margin: 20px 0;
+                border-radius: 12px;
+            }
+            
+            .info-box p {
+                font-size: 15px;
+                line-height: 1.7;
+                margin-bottom: 10px;
+                text-align: justify;
+                text-justify: inter-word;
+            }
+            
+            .info-box p:last-child {
+                margin-bottom: 0;
+            }
+            
+            /* Waiting Payment */
+            .waiting-payment {
+                padding: 22px 18px;
+                margin: 20px 0;
+                border-radius: 12px;
+            }
+            
+            .waiting-payment h5 {
+                font-size: 18px;
+            }
+            
+            /* Transfer Content */
+            .transfer-content-below-qr {
+                padding: 14px 12px;
+                margin: 12px 0 18px 0;
+                font-size: 15px;
+                border-radius: 10px;
+            }
+            
+            .transfer-content-below-qr p {
+                margin: 0;
+            }
+            
+            .transfer-content-below-qr strong {
+                font-size: 17px;
+                letter-spacing: 1px;
+                display: block;
+                margin-top: 6px;
+            }
+            
+            /* Payment Code */
+            .payment-code {
+                font-size: 20px;
+                letter-spacing: 3px;
+                padding: 18px 14px;
+                margin: 18px 0;
+                border-radius: 12px;
+            }
+            
+            .payment-code-below-qr {
+                font-size: 22px;
+                letter-spacing: 3px;
+                padding: 16px 14px;
+                margin: 18px auto;
+                max-width: 100%;
+                border-radius: 12px;
+            }
+            
+            /* Registration Info */
+            #registration-info-bottom {
+                padding: 18px 16px;
+                margin-top: 18px;
+                border-radius: 12px;
+            }
+            
+            #registration-info-bottom p {
+                font-size: 15px;
+                line-height: 1.7;
+                margin: 6px 0;
+            }
+            
+            /* Footer Responsive */
+            .footer {
+                padding: 40px 0 25px;
+            }
+            
+            .footer h2 {
+                font-size: 22px;
+                margin-bottom: 15px;
+                line-height: 1.35;
+            }
+            
+            .footer-motto {
+                font-size: 18px;
+                margin: 18px 0;
+                line-height: 1.5;
+            }
+            
+            .contact-info {
+                text-align: left;
+                margin-bottom: 20px;
+            }
+            
+            .contact-info p {
+                font-size: 15px;
+                line-height: 1.7;
+                margin-bottom: 8px;
+                text-align: justify;
+            }
+            
+            /* Social Links Responsive */
+            .social-links {
+                margin: 25px 0 20px;
+                padding: 20px 0;
+            }
+            
+            .social-links h4 {
+                font-size: 18px;
+                margin-bottom: 15px;
+            }
+            
+            .social-icons-row {
+                flex-direction: column;
+                gap: 10px;
+                padding: 0 5px;
+            }
+            
+            .social-link {
+                font-size: 14px;
+                padding: 12px 18px;
+                min-width: 100%;
+                max-width: 100%;
+                width: 100%;
+                border-radius: 10px;
+            }
+            
+            .social-icon {
+                font-size: 18px;
+            }
+            
+            .social-text {
+                font-size: 14px;
+            }
+            
+            .copyright {
+                font-size: 13px;
+                margin-top: 20px;
+                padding-top: 18px;
+            }
+        }
+        
+        /* Tối ưu cho màn hình rất nhỏ (iPhone SE) */
+        @media (max-width: 375px) {
+            .payment-container {
+                padding: 20px 15px;
+                margin: 8px;
+            }
+            
+            .success-header h4 {
+                font-size: 18px;
+            }
+            
+            .success-header p {
+                font-size: 14px;
+            }
+            
+            .bank-info h4 {
+                font-size: 18px;
+            }
+            
+            .bank-details p {
+                padding: 12px 10px;
+            }
+            
+            .copy-btn {
+                padding: 8px 14px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">
+                <img src="logo.png" alt="Anh Lập Trình" class="logo-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                <span class="logo-text" style="display:none;">Anh Lập Trình</span>
+            </div>
+            <button class="menu-toggle" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <nav class="nav-menu">
+                <a href="index.html">Trang chủ</a>
+                <a href="index.html#about">Về Anh Lập Trình</a>
+            </nav>
+        </div>
+    </header>
+
+    <section class="payment-page">
+        <div class="container">
+            <div class="payment-container">
+                <div class="success-header">
+                    <div class="success-icon"></div>
+                    <h4>Chúc mừng Bạn Đăng Ký Thành Công!</h4>
+                    <p>Kỹ Thuật Tự Động Hóa Quảng Cáo Facebook Ads Với Ai Automation</p>
+                </div>
+
+                <div class="note-box">
+                    <p><strong>✨ Đừng trì hoãn, hãy bắt đầu học ngay và luôn để tạo ra các chương trình tự động hóa theo chính ý tưởng của bạn</strong></p>
+                    <p><strong>📹 Đăng ký là vào học ngay lập tức qua video,</strong></p>
+                    <p><strong>💬 Hướng dẫn và hỗ trợ 1-1 qua Utraview, Zalo, Zoom...</strong></p>
+                </div>
+
+                <div class="bank-info">
+                    <h4>💳 Thông tin nhận chuyển khoản</h4>
+                    
+                    <!-- Account Info Card -->
+                    <div class="account-info-card">
+                        <div class="mbank-icon">
+                            <span class="mb-text">MB</span>
+                            <span class="star">★</span>
+                        </div>
+                        <div class="account-info-content">
+                            <div class="account-number">880208888</div>
+                            <div class="account-name">CONG TY TNHH ANH LAP TRINH</div>
+                        </div>
+                        <div class="chevron-down">▼</div>
+                    </div>
+                    
+                    <!-- QR Code Section - Lên trên -->
+                    <div class="qr-code-container">
+                        <div class="qr-header">
+                            <div class="qr-logo">
+                                <span class="vietqr-logo">VIETQR</span>
+                            </div>
+                            <div class="qr-header-divider" style="width: 2px; height: 35px; background: #e0e0e0; margin: 0 15px;"></div>
+                            <div class="qr-logo">
+                                <span style="color: #00786a; font-weight: bold; font-size: 24px;">napas</span>
+                                <span style="color: #27ae60; font-weight: bold; font-size: 24px;"> 247</span>
+                            </div>
+                        </div>
+                        <div class="qr-code-wrapper">
+                            <img src="logo%20mb.jpg" alt="QR Code MB Bank - Công Ty TNHH Anh Lập Trình" id="qrcode">
+                        </div>
+                    </div>
+                    
+                    <!-- Thông tin ngân hàng - Dưới cùng -->
+                    <div class="bank-details">
+                        <p>
+                            <strong>📌 Số Tài khoản:</strong>
+                            <span id="account-number" style="color: #e74c3c; font-size: 22px; font-weight: bold; letter-spacing: 1px;">880208888</span>
+                            <button class="copy-btn" onclick="copyToClipboard('880208888', this)">📋 Copy</button>
+                        </p>
+                        <p>
+                            <strong>👤 Tên người hưởng thụ:</strong>
+                            <span id="account-name" style="color: #333; font-size: 19px; font-weight: 600;">CONG TY TNHH ANH LAP TRINH</span>
+                            <button class="copy-btn" onclick="copyToClipboard('CONG TY TNHH ANH LAP TRINH', this)">📋 Copy</button>
+                        </p>
+                        <p>
+                            <strong>🏦 Ngân hàng:</strong>
+                            <span style="font-size: 18px; color: #e74c3c; font-weight: bold;">MB</span>
+                        </p>
+                        <p>
+                            <strong>💬 Nội dung CK:</strong>
+                            <span id="payment-content" style="color: #e74c3c; font-size: 20px; font-weight: bold; letter-spacing: 2px;">TDHCV343</span>
+                            <button class="copy-btn" onclick="copyToClipboard('TDHCV343', this)">📋 Copy</button>
+                        </p>
+                    </div>
+
+                    <!-- Thông tin thanh toán - Di chuyển lên đây -->
+                    <div class="payment-info" id="payment-info-bottom" style="margin-top: 25px;">
+                        <div class="payment-info-item">
+                            <span><strong>Số tiền cần thanh toán:</strong></span>
+                            <span id="payment-amount-bottom">1,450,000 VNĐ</span>
+                        </div>
+                    </div>
+                    
+                    <div class="promo-note" id="promo-note-bottom" style="margin-top: 15px;">
+                        <p>Ps: Chỉ khuyến mãi học phí duy nhất ngày hôm nay</p>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <p><strong>⏱️ Chuyển khoản xong chờ 5s sẽ tự động vào khóa học để anh em học ngay lập tức (Tết tranh thủ)</strong></p>
+                    <p><strong>📱 Nếu trường hợp không vào được khóa học, vui lòng chụp bill gởi qua số zalo: <span style="color: #0c5460; font-size: 19px; font-weight: 700;">0854838394</span>, chúng tôi sẽ kích hoạt thủ công cho anh em</strong></p>
+                </div>
+
+                <div class="waiting-payment">
+                    <h5>Đang chờ thanh toán</h5>
+                </div>
+
+                <!-- Thông tin đăng ký - Dưới cùng -->
+                <div class="payment-info" id="registration-info-bottom" style="display: none; background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border-left: 5px solid #2196f3; margin-top: 20px;">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer" id="contact">
+        <div class="container">
+            <h2>Tự Động Hóa Cuộc Sống Với AI</h2>
+            <h3 class="footer-motto">Cứ ứng dụng vào công việc đi,<br>vướng thì gỡ</h3>
+            <div class="contact-info">
+                <p><strong>Công Ty TNHH Anh Lập Trình</strong></p>
+                <p><strong>Mã số thuế:</strong> 0318822989</p>
+                <p><strong>Điện thoại:</strong> 0914972102</p>
+                <p><strong>Email:</strong> contact@anhlaptrinh.vn</p>
+                <p><strong>Địa chỉ:</strong> Lầu 5: Toà Nhà ST. MORITZ, 1014 Phạm Văn Đồng, P, Thủ Đức, Thành phố Hồ Chí Minh</p>
+            </div>
+            
+            <!-- Social Media Links -->
+            <div class="social-links">
+                <h4>Kết nối với chúng tôi</h4>
+                <div class="social-icons-row">
+                    <a href="https://www.youtube.com/@pyanpython" target="_blank" rel="noopener noreferrer" class="social-link youtube-link">
+                        <span class="social-icon"><i class="fab fa-youtube"></i></span>
+                        <span class="social-text">Anh Lập Trình</span>
+                    </a>
+                    <a href="https://www.facebook.com/tudonghoanocode/" target="_blank" rel="noopener noreferrer" class="social-link facebook-link">
+                        <span class="social-icon"><i class="fab fa-facebook-f"></i></span>
+                        <span class="social-text">Anh Lập Trình</span>
+                    </a>
+                    <a href="https://www.facebook.com/pythonchonguoilon/" target="_blank" rel="noopener noreferrer" class="social-link facebook-link">
+                        <span class="social-icon"><i class="fab fa-facebook-f"></i></span>
+                        <span class="social-text">Anh Lập Trình - Trợ Lý A.I</span>
+                    </a>
+                    <a href="https://www.facebook.com/PythonVBARevitExcelAutocad/" target="_blank" rel="noopener noreferrer" class="social-link facebook-link">
+                        <span class="social-icon"><i class="fab fa-facebook-f"></i></span>
+                        <span class="social-text">Anh Lập Trình - Python</span>
+                    </a>
+                </div>
+            </div>
+            
+            <p class="copyright">&copy; 2024. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Hàm copy vào clipboard
+        function copyToClipboard(text, button) {
+            // Sử dụng Clipboard API (hiện đại)
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(function() {
+                    showCopySuccess(button);
+                }).catch(function(err) {
+                    // Fallback nếu Clipboard API không hoạt động
+                    fallbackCopy(text, button);
+                });
+            } else {
+                // Fallback cho trình duyệt cũ
+                fallbackCopy(text, button);
+            }
+        }
+        
+        // Fallback copy method
+        function fallbackCopy(text, button) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showCopySuccess(button);
+            } catch (err) {
+                alert('Không thể copy. Vui lòng copy thủ công: ' + text);
+            }
+            document.body.removeChild(textArea);
+        }
+        
+        // Hiển thị thông báo copy thành công
+        function showCopySuccess(button) {
+            const originalText = button.textContent;
+            button.textContent = '✓ Đã copy!';
+            button.classList.add('copied');
+            
+            setTimeout(function() {
+                button.textContent = originalText;
+                button.classList.remove('copied');
+            }, 2000);
+        }
+        
+        // Lấy thông tin từ URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const name = urlParams.get('name');
+        const email = urlParams.get('email');
+        const phone = urlParams.get('phone');
+        
+        // Mã chuyển khoản cố định - LUÔN LUÔN LÀ TDHCV343
+        const paymentCode = 'TDHCV343';
+        
+        // Đảm bảo QR code image được hiển thị đúng
+        const qrImage = document.getElementById('qrcode');
+        if (qrImage) {
+            qrImage.onerror = function() {
+                this.style.display = 'none';
+                const errorDiv = document.createElement('div');
+                errorDiv.style.cssText = 'padding: 30px; background: #f0f0f0; border-radius: 15px; text-align: center; margin: 0 auto; max-width: 320px;';
+                errorDiv.innerHTML = '<p style="color: #999; font-size: 16px;">Không thể tải QR Code. Vui lòng kiểm tra file logo mb.jpg</p>';
+                this.parentElement.appendChild(errorDiv);
+            };
+        }
+        
+        // Hiển thị thông tin đăng ký ở dưới cùng
+        const registrationInfoBottom = document.getElementById('registration-info-bottom');
+        
+        // Đảm bảo số tiền được hiển thị đúng
+        const amountBottom = document.getElementById('payment-amount-bottom');
+        if (amountBottom) {
+            amountBottom.textContent = '1,450,000 VNĐ';
+        }
+        
+        // Hiển thị thông tin người đăng ký nếu có
+        if (name && registrationInfoBottom) {
+            registrationInfoBottom.style.display = 'block';
+            registrationInfoBottom.innerHTML = `
+                <p style="font-size: 18px; font-weight: bold; color: #1976d2; margin-bottom: 15px;">📋 Thông tin đăng ký:</p>
+                <p style="font-size: 17px; margin: 8px 0;"><strong>Họ tên:</strong> ${name}</p>
+                <p style="font-size: 17px; margin: 8px 0;"><strong>Email:</strong> ${email || 'N/A'}</p>
+                <p style="font-size: 17px; margin: 8px 0;"><strong>Số điện thoại:</strong> ${phone || 'N/A'}</p>
+            `;
+        }
+        
+    </script>
+    <script src="script.js?v=20251223_140342"></script>
+</body>
+</html>
