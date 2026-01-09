@@ -6,7 +6,7 @@ const EMAILJS_CONFIG = {
     PUBLIC_KEY: 'aeNVfuer5Cm_8uaOj',
     
     // Service ID từ EmailJS Dashboard → Email Services
-    SERVICE_ID: 'service_h3u1yz6',
+    SERVICE_ID: 'service_h3u1yz7',
     
     // Template ID từ EmailJS Dashboard → Email Templates
     TEMPLATE_ID: 'template_e1qiu58',
@@ -23,4 +23,3 @@ if (typeof module !== 'undefined' && module.exports) {
     module.exports = EMAILJS_CONFIG;
 }
 
-s

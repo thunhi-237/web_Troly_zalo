@@ -1,0 +1,33 @@
+==========================================
+EMAIL TEMPLATE CHO EMAILJS
+==========================================
+
+SUBJECT (Tiêu đề email):
+---
+Đăng Ký Mới - {{course_name}}
+---
+
+BODY (Nội dung email):
+---
+Xin chào {{to_name}},
+
+Bạn có một đăng ký mới từ website!
+
+📋 THÔNG TIN ĐĂNG KÝ:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+👤 Họ và tên: {{from_name}}
+📧 Email: {{from_email}}
+📱 Số điện thoại: {{phone}}
+💰 Số tiền: {{amount}}
+🎓 Khóa học: {{course_name}}
+💳 Mã chuyển khoản: {{payment_code}}
+📅 Thời gian đăng ký: {{date}}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Vui lòng kiểm tra và xử lý đăng ký này.
+
+Trân trọng,
+Hệ thống tự động
+---
+

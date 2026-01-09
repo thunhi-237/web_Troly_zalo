@@ -1,8 +1,11 @@
 // Xử lý form đăng ký
 document.addEventListener('DOMContentLoaded', function() {
+    // Chỉ chạy code này trên trang có form đăng ký (index.html)
+    // Tránh lỗi khi load trên trang thanh toán (thanhtoan1.html)
     const form = document.getElementById('registrationForm');
     
     if (form) {
+        console.log('✅ Form đăng ký được tìm thấy, khởi tạo event listener...');
         form.addEventListener('submit', function(e) {
             e.preventDefault();
             
@@ -44,33 +47,87 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Hàm gửi email
             function sendEmailNotification() {
-                if (!isEmailJSConfigured) {
-                    console.warn('EmailJS chưa được cấu hình. Vui lòng xem file HUONG_DAN_EMAILJS.md');
-                    return Promise.resolve(); // Trả về promise resolved để code tiếp tục chạy
+                // Kiểm tra EmailJS library có được load không
+                if (typeof emailjs === 'undefined') {
+                    console.error('❌ EmailJS library chưa được load! Kiểm tra lại script tag trong index.html');
+                    return Promise.reject(new Error('EmailJS library not loaded'));
                 }
                 
-                // Khởi tạo EmailJS
-                emailjs.init(EMAILJS_CONFIG.PUBLIC_KEY);
+                if (!isEmailJSConfigured) {
+                    console.warn('⚠️ EmailJS chưa được cấu hình. Vui lòng xem file HUONG_DAN_EMAILJS.md');
+                    console.warn('Config:', EMAILJS_CONFIG);
+                    return Promise.resolve({ success: false, message: 'EmailJS not configured' });
+                }
                 
-                // Chuẩn bị dữ liệu email
-                const emailParams = {
-                    to_email: EMAILJS_CONFIG.YOUR_EMAIL,
-                    to_name: EMAILJS_CONFIG.YOUR_NAME,
-                    from_name: name,
-                    from_email: email,
-                    phone: phone,
-                    payment_code: paymentCode,
-                    amount: '1,450,000 VNĐ',
-                    course_name: 'Khóa Tự Động Hóa Facebook Ads',
-                    date: new Date().toLocaleString('vi-VN')
-                };
+                // Kiểm tra config có đầy đủ không
+                if (!EMAILJS_CONFIG.PUBLIC_KEY || !EMAILJS_CONFIG.SERVICE_ID || !EMAILJS_CONFIG.TEMPLATE_ID) {
+                    console.error('❌ EmailJS config thiếu thông tin:', {
+                        hasPublicKey: !!EMAILJS_CONFIG.PUBLIC_KEY,
+                        hasServiceId: !!EMAILJS_CONFIG.SERVICE_ID,
+                        hasTemplateId: !!EMAILJS_CONFIG.TEMPLATE_ID
+                    });
+                    return Promise.reject(new Error('EmailJS config incomplete'));
+                }
                 
-                // Gửi email
-                return emailjs.send(
-                    EMAILJS_CONFIG.SERVICE_ID, 
-                    EMAILJS_CONFIG.TEMPLATE_ID, 
-                    emailParams
-                );
+                try {
+                    // Khởi tạo EmailJS
+                    emailjs.init(EMAILJS_CONFIG.PUBLIC_KEY);
+                    console.log('✅ EmailJS initialized with Public Key:', EMAILJS_CONFIG.PUBLIC_KEY.substring(0, 10) + '...');
+                    
+                    // Chuẩn bị dữ liệu email
+                    const emailParams = {
+                        to_email: EMAILJS_CONFIG.YOUR_EMAIL,
+                        to_name: EMAILJS_CONFIG.YOUR_NAME,
+                        from_name: name,
+                        from_email: email,
+                        phone: phone,
+                        payment_code: paymentCode,
+                        amount: '1,420,000 VNĐ',
+                        course_name: 'Khóa Tự Động Hóa Facebook Ads',
+                        date: new Date().toLocaleString('vi-VN')
+                    };
+                    
+                    console.log('📧 Đang gửi email đến:', EMAILJS_CONFIG.YOUR_EMAIL);
+                    console.log('📋 Email params:', emailParams);
+                    
+                    // Gửi email với error handling
+                    return emailjs.send(
+                        EMAILJS_CONFIG.SERVICE_ID, 
+                        EMAILJS_CONFIG.TEMPLATE_ID, 
+                        emailParams
+                    )
+                    .then(function(response) {
+                        console.log('✅ Email gửi thành công!', response);
+                        console.log('📧 Email đã được gửi đến:', EMAILJS_CONFIG.YOUR_EMAIL);
+                        return { success: true, response: response };
+                    })
+                    .catch(function(error) {
+                        console.error('❌ Lỗi gửi email:', error);
+                        console.error('Chi tiết lỗi:', {
+                            status: error.status,
+                            text: error.text,
+                            message: error.message
+                        });
+                        
+                        // Thông báo lỗi cụ thể
+                        let errorMessage = 'Không thể gửi email. ';
+                        if (error.status === 400) {
+                            errorMessage += 'Lỗi cấu hình (400). Kiểm tra lại Service ID và Template ID.';
+                        } else if (error.status === 401) {
+                            errorMessage += 'Lỗi xác thực (401). Kiểm tra lại Public Key.';
+                        } else if (error.status === 429) {
+                            errorMessage += 'Đã hết quota (429). EmailJS miễn phí chỉ 200 emails/tháng.';
+                        } else {
+                            errorMessage += `Lỗi: ${error.text || error.message}`;
+                        }
+                        
+                        console.error('💡 Gợi ý khắc phục:', errorMessage);
+                        return { success: false, error: error, message: errorMessage };
+                    });
+                } catch (error) {
+                    console.error('❌ Lỗi khi khởi tạo EmailJS:', error);
+                    return Promise.reject(error);
+                }
             }
             
             // Hàm gửi thông báo đến Zalo Bot qua n8n
@@ -141,32 +198,57 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             // Gửi cả email và Zalo notification song song
-            Promise.all([
+            Promise.allSettled([
                 sendEmailNotification(),
                 sendZaloNotification()
             ])
                 .then(function(results) {
                     const [emailResult, zaloResult] = results;
-                    console.log('Email sent:', emailResult);
-                    console.log('Zalo notification sent:', zaloResult);
                     
-                    showNotification('Đăng ký thành công! Đang chuyển đến trang thanh toán...', 'success');
+                    // Xử lý kết quả email
+                    if (emailResult.status === 'fulfilled') {
+                        if (emailResult.value && emailResult.value.success) {
+                            console.log('✅ Email gửi thành công:', emailResult.value);
+                        } else {
+                            console.warn('⚠️ Email không gửi được:', emailResult.value);
+                            if (emailResult.value && emailResult.value.message) {
+                                console.warn('Lý do:', emailResult.value.message);
+                            }
+                        }
+                    } else {
+                        console.error('❌ Email gửi thất bại:', emailResult.reason);
+                    }
+                    
+                    // Xử lý kết quả Zalo
+                    if (zaloResult.status === 'fulfilled') {
+                        if (zaloResult.value && zaloResult.value.success !== false) {
+                            console.log('✅ Zalo notification gửi thành công:', zaloResult.value);
+                        } else {
+                            console.warn('⚠️ Zalo notification không gửi được:', zaloResult.value);
+                        }
+                    } else {
+                        console.error('❌ Zalo notification thất bại:', zaloResult.reason);
+                    }
+                    
+                    // Hiển thị thông báo phù hợp
+                    const emailSuccess = emailResult.status === 'fulfilled' && 
+                                       emailResult.value && 
+                                       emailResult.value.success === true;
+                    const zaloSuccess = zaloResult.status === 'fulfilled' && 
+                                      zaloResult.value && 
+                                      zaloResult.value.success !== false;
+                    
+                    if (emailSuccess && zaloSuccess) {
+                        showNotification('Đăng ký thành công! Email và Zalo đã được gửi.', 'success');
+                    } else if (emailSuccess) {
+                        showNotification('Đăng ký thành công! Email đã được gửi. (Zalo có thể chưa gửi được)', 'success');
+                    } else if (zaloSuccess) {
+                        showNotification('Đăng ký thành công! Zalo đã được gửi. (Email có thể chưa gửi được)', 'info');
+                    } else {
+                        showNotification('Đăng ký thành công! (Email và Zalo có thể chưa gửi được - vui lòng kiểm tra console)', 'info');
+                    }
                     
                     // Chuyển đến trang thanh toán sau khi gửi thành công
-                    setTimeout(() => {
-                        const params = new URLSearchParams({
-                            name: name,
-                            email: email,
-                            phone: phone,
-                            code: paymentCode
-                        });
-                        window.location.href = 'thanhtoan.html?' + params.toString();
-                    }, 1500);
-                })
-                .catch(function(error) {
-                    console.error('Notification failed:', error);
-                    // Vẫn chuyển đến trang thanh toán dù có lỗi
-                    showNotification('Đăng ký thành công! (Thông báo có thể chưa gửi được)', 'info');
                     setTimeout(() => {
                         const params = new URLSearchParams({
                             name: name,

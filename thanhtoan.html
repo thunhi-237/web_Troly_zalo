@@ -1373,7 +1373,7 @@
                         </div>
                         <div class="account-info-content">
                             <div class="account-number">880208888</div>
-                            <div class="account-name">CONG TY TNHH ANH LAP TRINH</div>
+                            <div class="account-name">Công Ty TNHH Anh Lập Trình</div>
                         </div>
                         <div class="chevron-down">▼</div>
                     </div>
@@ -1404,8 +1404,8 @@
                         </p>
                         <p>
                             <strong>👤 Tên người hưởng thụ:</strong>
-                            <span id="account-name" style="color: #333; font-size: 19px; font-weight: 600;">CONG TY TNHH ANH LAP TRINH</span>
-                            <button class="copy-btn" onclick="copyToClipboard('CONG TY TNHH ANH LAP TRINH', this)">📋 Copy</button>
+                            <span id="account-name" style="color: #333; font-size: 19px; font-weight: 600;">Công Ty TNHH Anh Lập Trình</span>
+                            <button class="copy-btn" onclick="copyToClipboard('Công Ty TNHH Anh Lập Trình', this)">📋 Copy</button>
                         </p>
                         <p>
                             <strong>🏦 Ngân hàng:</strong>
@@ -1422,7 +1422,7 @@
                     <div class="payment-info" id="payment-info-bottom" style="margin-top: 25px;">
                         <div class="payment-info-item">
                             <span><strong>Số tiền cần thanh toán:</strong></span>
-                            <span id="payment-amount-bottom">1,450,000 VNĐ</span>
+                            <span id="payment-amount-bottom">1,420,000 VNĐ</span>
                         </div>
                     </div>
                     
@@ -1534,48 +1534,76 @@
             }, 2000);
         }
         
-        // Lấy thông tin từ URL parameters
-        const urlParams = new URLSearchParams(window.location.search);
-        const name = urlParams.get('name');
-        const email = urlParams.get('email');
-        const phone = urlParams.get('phone');
-        
-        // Mã chuyển khoản cố định - LUÔN LUÔN LÀ TDHCV343
-        const paymentCode = 'TDHCV343';
-        
-        // Đảm bảo QR code image được hiển thị đúng
-        const qrImage = document.getElementById('qrcode');
-        if (qrImage) {
-            qrImage.onerror = function() {
-                this.style.display = 'none';
-                const errorDiv = document.createElement('div');
-                errorDiv.style.cssText = 'padding: 30px; background: #f0f0f0; border-radius: 15px; text-align: center; margin: 0 auto; max-width: 320px;';
-                errorDiv.innerHTML = '<p style="color: #999; font-size: 16px;">Không thể tải QR Code. Vui lòng kiểm tra file logo mb.jpg</p>';
-                this.parentElement.appendChild(errorDiv);
-            };
-        }
-        
-        // Hiển thị thông tin đăng ký ở dưới cùng
-        const registrationInfoBottom = document.getElementById('registration-info-bottom');
-        
-        // Đảm bảo số tiền được hiển thị đúng
-        const amountBottom = document.getElementById('payment-amount-bottom');
-        if (amountBottom) {
-            amountBottom.textContent = '1,450,000 VNĐ';
-        }
-        
-        // Hiển thị thông tin người đăng ký nếu có
-        if (name && registrationInfoBottom) {
-            registrationInfoBottom.style.display = 'block';
-            registrationInfoBottom.innerHTML = `
-                <p style="font-size: 18px; font-weight: bold; color: #1976d2; margin-bottom: 15px;">📋 Thông tin đăng ký:</p>
-                <p style="font-size: 17px; margin: 8px 0;"><strong>Họ tên:</strong> ${name}</p>
-                <p style="font-size: 17px; margin: 8px 0;"><strong>Email:</strong> ${email || 'N/A'}</p>
-                <p style="font-size: 17px; margin: 8px 0;"><strong>Số điện thoại:</strong> ${phone || 'N/A'}</p>
-            `;
-        }
+        // Đợi DOM load xong trước khi chạy script
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('✅ Trang thanh toán đã load xong');
+            
+            try {
+                // Lấy thông tin từ URL parameters
+                const urlParams = new URLSearchParams(window.location.search);
+                const name = urlParams.get('name');
+                const email = urlParams.get('email');
+                const phone = urlParams.get('phone');
+                
+                console.log('📋 Thông tin từ URL:', { name, email, phone });
+                
+                // Mã chuyển khoản cố định - LUÔN LUÔN LÀ TDHCV343
+                const paymentCode = 'TDHCV343';
+                
+                // Đảm bảo QR code image được hiển thị đúng
+                const qrImage = document.getElementById('qrcode');
+                if (qrImage) {
+                    qrImage.onerror = function() {
+                        console.warn('⚠️ Không thể tải QR Code image');
+                        this.style.display = 'none';
+                        const errorDiv = document.createElement('div');
+                        errorDiv.style.cssText = 'padding: 30px; background: #f0f0f0; border-radius: 15px; text-align: center; margin: 0 auto; max-width: 320px;';
+                        errorDiv.innerHTML = '<p style="color: #999; font-size: 16px;">Không thể tải QR Code. Vui lòng kiểm tra file logo mb.jpg</p>';
+                        this.parentElement.appendChild(errorDiv);
+                    };
+                    console.log('✅ QR Code image element found');
+                } else {
+                    console.warn('⚠️ QR Code element không tìm thấy (id="qrcode")');
+                }
+                
+                // Hiển thị thông tin đăng ký ở dưới cùng
+                const registrationInfoBottom = document.getElementById('registration-info-bottom');
+                
+                // Đảm bảo số tiền được hiển thị đúng
+                const amountBottom = document.getElementById('payment-amount-bottom');
+                if (amountBottom) {
+                    amountBottom.textContent = '1,420,000 VNĐ';
+                    console.log('✅ Số tiền đã được cập nhật');
+                } else {
+                    console.warn('⚠️ Payment amount element không tìm thấy (id="payment-amount-bottom")');
+                }
+                
+                // Hiển thị thông tin người đăng ký nếu có
+                if (name && registrationInfoBottom) {
+                    registrationInfoBottom.style.display = 'block';
+                    registrationInfoBottom.innerHTML = `
+                        <p style="font-size: 18px; font-weight: bold; color: #1976d2; margin-bottom: 15px;">📋 Thông tin đăng ký:</p>
+                        <p style="font-size: 17px; margin: 8px 0;"><strong>Họ tên:</strong> ${name}</p>
+                        <p style="font-size: 17px; margin: 8px 0;"><strong>Email:</strong> ${email || 'N/A'}</p>
+                        <p style="font-size: 17px; margin: 8px 0;"><strong>Số điện thoại:</strong> ${phone || 'N/A'}</p>
+                    `;
+                    console.log('✅ Thông tin đăng ký đã được hiển thị');
+                } else {
+                    if (!name) {
+                        console.info('ℹ️ Không có thông tin name từ URL parameters');
+                    }
+                    if (!registrationInfoBottom) {
+                        console.warn('⚠️ Registration info element không tìm thấy (id="registration-info-bottom")');
+                    }
+                }
+            } catch (error) {
+                console.error('❌ Lỗi khi xử lý trang thanh toán:', error);
+                console.error('Stack trace:', error.stack);
+            }
+        });
         
     </script>
-    <script src="script.js?v=20251223_140342"></script>
+    <!-- Không load script.js trên trang thanh toán vì không cần thiết và có thể gây lỗi -->
+    <!-- script.js chỉ dùng cho trang index.html (form đăng ký) -->
 </body>
 </html>
